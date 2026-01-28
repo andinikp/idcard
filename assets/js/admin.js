@@ -393,9 +393,9 @@ const App = {
         
         handleUpload: async (file) => {
             try {
-                // 1. Auth Check
+                // 1. Auth Check (Removed)
                 const token = App.ensureAuth();
-                if (!token) return alert("Admin Token required for Cloud Upload.");
+                // if (!token) return alert("Admin Token required for Cloud Upload.");
 
                 // 2. Compress
                 const res = await Utils.compressImage(file, 1600, 0.85); // High quality for cloud
@@ -718,17 +718,13 @@ const App = {
     },
 
     ensureAuth: () => {
-        let token = localStorage.getItem('ID_ADMIN_TOKEN');
-        if (!token) {
-            token = prompt("Enter Admin Token (configured in Vercel):");
-            if (token) localStorage.setItem('ID_ADMIN_TOKEN', token);
-        }
-        return token;
+        // Auth removed for ease of use
+        return "public";
     },
 
     publishTemplate: async () => {
         const token = App.ensureAuth();
-        if (!token) return alert("Admin Token required.");
+        // if (!token) return alert("Admin Token required.");
 
         const name = document.getElementById('inputTemplateName').value || 'untitled';
         const slug = name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') || 'template-' + Date.now();

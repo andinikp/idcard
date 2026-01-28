@@ -9,11 +9,11 @@ export default async function handler(request, response) {
       body,
       request,
       onBeforeGenerateToken: async (pathname /*, clientPayload */) => {
-        // Auth Check
-        const authHeader = request.headers['authorization'];
-        if (!process.env.ADMIN_TOKEN || authHeader !== `Bearer ${process.env.ADMIN_TOKEN}`) {
-             throw new Error('Unauthorized');
-        }
+        // Auth Check REMOVED for ease of use
+        // const authHeader = request.headers['authorization'];
+        // if (!process.env.ADMIN_TOKEN || authHeader !== `Bearer ${process.env.ADMIN_TOKEN}`) {
+        //      throw new Error('Unauthorized');
+        // }
         
         // Limit uploads to images
         return {

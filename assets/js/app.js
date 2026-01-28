@@ -127,7 +127,8 @@ const RenderEngine = {
         ctx.fillRect(0, 0, Utils.mmToPx(template.meta.widthMm), Utils.mmToPx(template.meta.heightMm));
 
         // Draw Template Background (Schema V2)
-        if (template.background && template.background.value) {
+        // Draw Template Background (Schema V2)
+        if (template.background && template.background.type === 'image' && template.background.value) {
              try {
                 const bgImg = await RenderEngine.loadImage(template.background.value);
                 const fit = template.background.fit || 'stretch'; // default behavior

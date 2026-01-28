@@ -15,20 +15,21 @@ const Generator = {
         const params = new URLSearchParams(window.location.search);
         
         // 1. Static Template Plugin (?template=...)
+        // 1. Cloud Template (?template=...)
         const templateSlug = params.get('template');
         if (templateSlug) {
             console.log(`Fetching template: ${templateSlug}...`);
             try {
-                // Cache busting to ensure fresh version if user just uploaded
-                const res = await fetch(`templates/${templateSlug}.json?v=${Date.now()}`);
-                if (!res.ok) throw new Error("Template not found. Please ensure the JSON file is uploaded to /templates/ folder.");
+                // Fetch from our new API which redirects to Blob
+                const res = await fetch(`api/template?slug=${templateSlug}`);
+                if (!res.ok) throw new Error("Template not found or expired.");
                 
                 const json = await res.json();
                 Generator.state.template = json;
-                console.log("Template loaded from JSON.");
+                console.log("Template loaded from Cloud.");
             } catch (e) {
                 console.error(e);
-                alert(`Error: ${e.message}`);
+                alert(`Error loading template: ${e.message}`);
             }
         }
 

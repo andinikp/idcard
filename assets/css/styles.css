@@ -1,0 +1,202 @@
+:root {
+  --primary-color: #3b82f6;
+  --secondary-color: #64748b;
+  --bg-color: #f8fafc;
+  --panel-bg: #ffffff;
+  --border-color: #e2e8f0;
+  --canvas-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --grid-line-color: #e5e7eb;
+}
+
+body {
+  background-color: var(--bg-color);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: #1e293b;
+  height: 100vh;
+  overflow: hidden; /* App-like feel */
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.app-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  height: 100%;
+}
+
+.sidebar {
+  width: 350px;
+  background: var(--panel-bg);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  z-index: 20;
+}
+
+.sidebar-right {
+  width: 320px;
+  background: var(--panel-bg);
+  border-left: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  z-index: 20;
+}
+
+.tools-panel {
+  padding: 1rem;
+}
+
+.canvas-area {
+  flex: 1;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: auto;
+  padding: 2rem;
+}
+
+/* Canvas Wrapper */
+.canvas-wrapper {
+  position: relative;
+  box-shadow: var(--canvas-shadow);
+  transform-origin: center center;
+  background: white;
+  transition: transform 0.2s;
+}
+
+canvas {
+  display: block;
+}
+
+/* Grid Background for Canvas Area */
+.bg-grid {
+  background-size: 20px 20px;
+  background-image:
+    linear-gradient(to right, var(--grid-line-color) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line-color) 1px, transparent 1px);
+}
+
+/* Form Styles */
+.form-group {
+  margin-bottom: 1rem;
+}
+.form-label {
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: #475569;
+}
+.form-control, .form-select {
+  border-color: var(--border-color);
+  font-size: 0.9rem;
+}
+.form-control:focus, .form-select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* Draggable Overlays (Admin) */
+.drag-layer {
+  position: absolute;
+  border: 1px dashed rgba(59, 130, 246, 0.0); /* Hidden by default */
+  cursor: grab;
+  pointer-events: auto; /* Ensure it captures clicks */
+}
+.drag-layer:hover {
+  border-color: rgba(59, 130, 246, 0.5);
+}
+.drag-layer.selected {
+  outline: 2px solid var(--primary-color);
+  border: none;
+  z-index: 1000 !important; /* Bring to top when selected for editing */
+}
+
+/* Resize Handles */
+.resize-handle {
+  width: 10px;
+  height: 10px;
+  background: white;
+  border: 1px solid var(--primary-color);
+  position: absolute;
+  display: none;
+  z-index: 1001;
+}
+.drag-layer.selected .resize-handle {
+  display: block;
+}
+.rh-nw { top: -5px; left: -5px; cursor: nw-resize; }
+.rh-ne { top: -5px; right: -5px; cursor: ne-resize; }
+.rh-sw { bottom: -5px; left: -5px; cursor: sw-resize; }
+.rh-se { bottom: -5px; right: -5px; cursor: se-resize; }
+
+.toolbar-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  margin-bottom: 0.5rem;
+  padding: 0.6rem 1rem;
+  text-align: left;
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+  color: #475569;
+}
+.toolbar-btn:hover {
+  background: #f8fafc;
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+.toolbar-btn i {
+  width: 20px;
+  text-align: center;
+}
+
+.section-title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: #94a3b8;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 2rem;
+  color: #94a3b8;
+}
+.empty-state i {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+/* Utilities */
+.shadow-soft {
+  box-shadow: var(--canvas-shadow);
+}

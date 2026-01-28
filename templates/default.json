@@ -1,0 +1,116 @@
+{
+  "meta": {
+    "templateName": "Default Badge",
+    "widthMm": 54,
+    "heightMm": 86,
+    "orientation": "portrait"
+  },
+  "fields": [
+    {
+      "key": "photo",
+      "label": "Photo",
+      "type": "image",
+      "required": true
+    },
+    {
+      "key": "fullName",
+      "label": "Full Name",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "role",
+      "label": "Role / Position",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "department",
+      "label": "Department",
+      "type": "select",
+      "options": ["Engineering", "Design", "Marketing", "Sales", "HR"],
+      "required": false
+    },
+    {
+      "key": "idNumber",
+      "label": "ID Number",
+      "type": "text",
+      "required": true
+    }
+  ],
+  "layers": [
+    {
+      "id": "bg-shape-1",
+      "type": "shape",
+      "shapeType": "rect",
+      "x": 0,
+      "y": 0,
+      "w": 350,
+      "h": 150,
+      "fill": "#3b82f6",
+      "zIndex": 1
+    },
+    {
+      "id": "photo-layer",
+      "type": "image",
+      "bindKey": "photo",
+      "x": 100,
+      "y": 80,
+      "w": 150,
+      "h": 150,
+      "borderRadius": 75,
+      "objectFit": "cover",
+      "zIndex": 10
+    },
+    {
+      "id": "name-layer",
+      "type": "text",
+      "bindKey": "fullName",
+      "x": 20,
+      "y": 250,
+      "w": 310,
+      "fontSize": 24,
+      "fontWeight": "bold",
+      "align": "center",
+      "color": "#1f2937",
+      "zIndex": 20
+    },
+    {
+      "id": "role-layer",
+      "type": "text",
+      "bindKey": "role",
+      "x": 20,
+      "y": 285,
+      "w": 310,
+      "fontSize": 16,
+      "align": "center",
+      "color": "#4b5563",
+      "zIndex": 20
+    },
+    {
+      "id": "dept-layer",
+      "type": "text",
+      "bindKey": "department",
+      "x": 20,
+      "y": 310,
+      "w": 310,
+      "fontSize": 14,
+      "align": "center",
+      "color": "#6b7280",
+      "zIndex": 20
+    },
+    {
+      "id": "id-layer",
+      "type": "text",
+      "bindKey": "idNumber",
+      "x": 20,
+      "y": 500,
+      "w": 310,
+      "fontSize": 12,
+      "align": "center",
+      "color": "#9ca3af",
+      "zIndex": 20,
+      "textPrefix": "ID: "
+    }
+  ]
+}

@@ -655,49 +655,73 @@ const App = {
         const unique = Math.floor(Date.now() / 1000).toString(36);
         const slug = `${sanitized}-${unique}`;
         
-        // 2. Prepare JSON Blob
+        // 2. Prepare JSON Blob (Method A: File)
         const jsonStr = JSON.stringify(App.state.template, null, 2);
         const blob = new Blob([jsonStr], {type: "application/json"});
-        const url = URL.createObjectURL(blob);
+        const blobUrl = URL.createObjectURL(blob);
+        const staticShareUrl = `${window.location.href.replace('admin.html', 'index.html').split('?')[0]}?template=${slug}`;
+
+        // 3. Prepare Encoded URL (Method B: Instant)
+        const encoded = Utils.encodeTemplate(App.state.template);
+        const instantShareUrl = `${window.location.href.replace('admin.html', 'index.html').split('?')[0]}?t=${encoded}`;
         
-        // 3. Update Modal UI for "Static Publish"
+        // 4. Update Modal UI
         const modalEl = document.getElementById('shareModal');
         const modal = new bootstrap.Modal(modalEl);
-        
-        // Inject Custom Content into Modal Body (Cleanest way without changing HTML structure drastically)
         const body = modalEl.querySelector('.modal-body');
-        const shareUrl = `${window.location.href.replace('admin.html', 'index.html').split('?')[0]}?template=${slug}`;
         
+        // Check URL length safety (approx 2000 limit for some browsers, though modern ones support much more)
+        const urlWarning = instantShareUrl.length > 2000 ? 
+            `<div class="alert alert-warning py-1 small mb-2"><i class="fa-solid fa-triangle-exclamation"></i> Link is long (${Math.round(instantShareUrl.length/1024)}KB). If it fails, use the 'File Host' method below.</div>` : '';
+
         body.innerHTML = `
-            <div class="alert alert-info small">
-                <strong><i class="fa-solid fa-cloud-arrow-up"></i> Static Publish Workflow</strong><br>
-                Since we are using static hosting, you need to save the template file to your repository.
+            <!-- METHOD 1: INSTANT LINK -->
+            <h6 class="fw-bold text-primary"><i class="fa-solid fa-bolt"></i> Instant Share Link</h6>
+            <p class="small text-muted mb-2">Copy this link to share immediately. No file upload required.</p>
+            ${urlWarning}
+            <div class="input-group mb-4">
+                <input type="text" class="form-control font-monospace small" value="${instantShareUrl}" id="shareLinkInstant" readonly onclick="this.select()">
+                <button class="btn btn-primary" id="btnCopyInstant"><i class="fa-regular fa-copy"></i> Copy</button>
+                <a href="${instantShareUrl}" target="_blank" class="btn btn-outline-secondary"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
             </div>
+
+            <hr>
+
+            <!-- METHOD 2: STATIC FILE -->
+            <h6 class="fw-bold text-secondary"><i class="fa-solid fa-server"></i> File Host (For Developers)</h6>
+            <p class="small text-muted mb-2">Best for permanent hosting on Vercel/Netlify. Prevents long URLs.</p>
             
-            <div class="d-grid gap-2 mb-3">
-                <a href="${url}" download="${slug}.json" class="btn btn-success">
-                    <i class="fa-solid fa-download"></i> Download <b>${slug}.json</b>
+            <div class="d-flex align-items-center gap-2 mb-3 bg-light p-2 rounded">
+                <a href="${blobUrl}" download="${slug}.json" class="btn btn-sm btn-outline-success">
+                    <i class="fa-solid fa-download"></i> Download JSON
                 </a>
+                <div class="small text-muted border-start ps-2">
+                    Upload to <code>/templates/${slug}.json</code>
+                </div>
             </div>
             
-            <p class="small text-muted mb-1">Step 2: Upload this file to <code>/templates/</code> folder in your repo.</p>
-            <p class="small text-muted mb-3">Step 3: Use this link to share:</p>
-            
-            <div class="input-group mb-3">
-                <input type="text" class="form-control font-monospace small" value="${shareUrl}" id="shareLinkInput" readonly>
-                <button class="btn btn-outline-primary" id="btnCopyLink"><i class="fa-regular fa-copy"></i></button>
-                <a href="${shareUrl}" target="_blank" class="btn btn-outline-secondary"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+            <p class="small text-muted mb-1">Then use this link:</p>
+            <div class="input-group mb-2">
+                <input type="text" class="form-control font-monospace form-control-sm text-muted" value="${staticShareUrl}" id="shareLinkStatic" readonly onclick="this.select()">
+                <button class="btn btn-sm btn-outline-secondary" id="btnCopyStatic"><i class="fa-regular fa-copy"></i></button>
             </div>
         `;
         
-        // Bind Copy
+        // Bind Copy Buttons
         setTimeout(() => {
-            document.getElementById('btnCopyLink').onclick = () => {
-                const input = document.getElementById('shareLinkInput');
-                input.select();
-                navigator.clipboard.writeText(input.value);
-                // Visual feedback could be added here
+            const bindCopy = (btnId, inputId) => {
+                const btn = document.getElementById(btnId);
+                if(btn) btn.onclick = () => {
+                    const input = document.getElementById(inputId);
+                    input.select();
+                    navigator.clipboard.writeText(input.value);
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied';
+                    setTimeout(() => btn.innerHTML = originalText, 2000);
+                };
             };
+            bindCopy('btnCopyInstant', 'shareLinkInstant');
+            bindCopy('btnCopyStatic', 'shareLinkStatic');
         }, 100);
         
         modal.show();

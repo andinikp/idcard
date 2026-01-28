@@ -13,9 +13,28 @@ const Generator = {
     init: async () => {
         // Check for Shared Link (t param)
         const params = new URLSearchParams(window.location.search);
-        const encoded = params.get('t');
         
-        if (encoded) {
+        // 1. Static Template Plugin (?template=...)
+        const templateSlug = params.get('template');
+        if (templateSlug) {
+            console.log(`Fetching template: ${templateSlug}...`);
+            try {
+                // Cache busting to ensure fresh version if user just uploaded
+                const res = await fetch(`templates/${templateSlug}.json?v=${Date.now()}`);
+                if (!res.ok) throw new Error("Template not found. Please ensure the JSON file is uploaded to /templates/ folder.");
+                
+                const json = await res.json();
+                Generator.state.template = json;
+                console.log("Template loaded from JSON.");
+            } catch (e) {
+                console.error(e);
+                alert(`Error: ${e.message}`);
+            }
+        }
+
+        // 2. Legacy/Encoded Link (?t=...)
+        const encoded = params.get('t');
+        if (!Generator.state.template && encoded) {
              console.log("Loading shared template...");
              const decoded = Utils.decodeTemplate(encoded);
              if (decoded) {
@@ -249,8 +268,13 @@ const Generator = {
         const container = document.getElementById('dynamicFields');
         container.innerHTML = '';
         const fields = Generator.state.template.fields || [];
+        const renderedKeys = new Set();
 
         fields.forEach(field => {
+            // Prevent duplicates
+            if (renderedKeys.has(field.key)) return;
+            renderedKeys.add(field.key);
+
             const group = document.createElement('div');
             group.className = 'form-group';
             

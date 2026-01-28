@@ -53,10 +53,18 @@ const App = {
                          App.state.template.background = { type: 'image', value: App.state.template.meta.backgroundImage, fit: 'stretch' };
                     }
                 }
+                // Ensure Arrays
+                if (!App.state.template.fields) App.state.template.fields = [];
+                if (!App.state.template.layers) App.state.template.layers = [];
             } catch (e) {
                 console.warn("No default template found");
             }
         }
+        
+        // Safety check for local loaded data too
+        if (!App.state.template.fields) App.state.template.fields = [];
+        if (!App.state.template.layers) App.state.template.layers = [];
+        
         App.saveState(true); // Initial save for undo
     },
 
@@ -104,8 +112,9 @@ const App = {
         const canvas = document.getElementById('previewCanvas');
         
         // Generate Mock Data for Preview so fields show their names
+        // Generate Mock Data for Preview so fields show their names
         const mockData = {};
-        App.state.template.fields.forEach(f => {
+        (App.state.template.fields || []).forEach(f => {
             mockData[f.key] = `[${f.label}]`;
         });
         
@@ -233,16 +242,33 @@ const App = {
 
         // Render Fields List (Left Panel)
         const fieldsList = document.getElementById('fieldsList');
-        fieldsList.innerHTML = '';
-        App.state.template.fields.forEach(f => {
-            const item = document.createElement('div');
-            item.className = 'list-group-item d-flex justify-content-between align-items-center p-2';
-            item.innerHTML = `
-                <span>${f.label} <small class="text-muted">(${f.key})</small></span>
-                <button class="btn btn-sm text-danger p-0" onclick="App.deleteField('${f.key}')"><i class="fa-solid fa-trash"></i></button>
-            `;
-            fieldsList.appendChild(item);
-        });
+        if (fieldsList) {
+            const fields = App.state.template.fields || [];
+            console.log(`Rendering Fields: ${fields.length} items`);
+            
+            fieldsList.innerHTML = '';
+            
+            if (fields.length === 0) {
+                 fieldsList.innerHTML = '<div class="text-center text-muted p-3"><small>No fields added.<br>Use toolbar to add data fields.</small></div>';
+            } else {
+                fields.forEach(f => {
+                    const item = document.createElement('div');
+                    item.className = 'list-group-item d-flex justify-content-between align-items-center p-2 border-bottom';
+                    item.style.color = '#333'; // Enforce visibility
+                    item.innerHTML = `
+                        <div class="text-truncate">
+                            <i class="fa-solid fa-tag text-primary me-2"></i>
+                            <span class="fw-bold">${f.label}</span> 
+                            <small class="text-muted ms-1">(${f.key})</small>
+                        </div>
+                        <button class="btn btn-sm btn-link text-danger p-0" onclick="App.deleteField('${f.key}')" title="Delete Field">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    `;
+                    fieldsList.appendChild(item);
+                });
+            }
+        }
     },
 
     deleteField: (key) => {
@@ -334,34 +360,41 @@ const App = {
     // --- BACKGROUND SETTINGS ---
     bgSettings: {
         render: () => {
-            const t = App.state.template;
-            const bg = t.background || { type: 'color' };
-            const preview = document.getElementById('bgPreviewImage');
-            const cont = document.getElementById('bgPreviewContainer');
-            const opts = document.getElementById('bgOptions');
-            const uploadBtn = document.getElementById('btnUploadBg');
+            try {
+                const t = App.state.template;
+                const bg = t.background || { type: 'color' };
+                const preview = document.getElementById('bgPreviewImage');
+                const cont = document.getElementById('bgPreviewContainer');
+                const opts = document.getElementById('bgOptions');
+                const uploadBtn = document.getElementById('btnUploadBg');
 
-            if (bg.type === 'image' && bg.value) {
-                cont.style.display = 'block';
-                preview.src = bg.value;
-                opts.style.display = 'block';
-                uploadBtn.innerText = "Replace Image";
-                
-                // Calc size
-                const sizeKB = Math.round((bg.value.length * 0.75) / 1024);
-                document.getElementById('bgSizeInfo').innerText = `~${sizeKB} KB`;
-                document.getElementById('bgFitSelect').value = bg.fit || 'stretch';
-            } else {
-                cont.style.display = 'none';
-                opts.style.display = 'none';
-                uploadBtn.innerText = "Upload Image";
+                if (bg.type === 'image' && bg.value && typeof bg.value === 'string') {
+                    if (cont) cont.style.display = 'block';
+                    if (preview) preview.src = bg.value;
+                    if (opts) opts.style.display = 'block';
+                    if (uploadBtn) uploadBtn.innerText = "Replace Image";
+                    
+                    // Calc size
+                    const sizeKB = Math.round((bg.value.length * 0.75) / 1024);
+                    const infoEL = document.getElementById('bgSizeInfo');
+                    if (infoEL) infoEL.innerText = `~${sizeKB} KB`;
+                    
+                    const fitSel = document.getElementById('bgFitSelect');
+                    if(fitSel) fitSel.value = bg.fit || 'stretch';
+                } else {
+                    if (cont) cont.style.display = 'none';
+                    if (opts) opts.style.display = 'none';
+                    if (uploadBtn) uploadBtn.innerText = "Upload Image";
+                }
+            } catch (e) {
+                console.error("Error rendering BG settings:", e);
             }
         },
         
         handleUpload: async (file) => {
             try {
-                // Compress!
-                const res = await Utils.compressImage(file, 1000, 0.8);
+                // Compress! Max 1600px as requested for better quality but reasonable JSON size
+                const res = await Utils.compressImage(file, 1600, 0.8);
                 App.state.template.background = {
                     type: 'image',
                     value: res.dataUrl,
@@ -616,26 +649,56 @@ const App = {
     },
 
     shareLink: () => {
-        const encoded = Utils.encodeTemplate(App.state.template);
-        const baseUrl = window.location.href.replace('admin.html', 'index.html');
-        // Check size
-        if (encoded.length > 20000) { // arbitrary warning limit for URL
-            document.getElementById('shareWarning').classList.remove('d-none');
-            document.getElementById('shareWarning').innerText = `Warning: Link payload is ${Math.round(encoded.length/1024)}KB. It may be too long for some platforms.`;
-        } else {
-            document.getElementById('shareWarning').classList.add('d-none');
-        }
+        // 1. Generate Slug
+        const name = document.getElementById('inputTemplateName').value || 'untitled';
+        const sanitized = name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') || 'template';
+        const unique = Math.floor(Date.now() / 1000).toString(36);
+        const slug = `${sanitized}-${unique}`;
         
-        const fullUrl = `${baseUrl}?t=${encoded}`;
+        // 2. Prepare JSON Blob
+        const jsonStr = JSON.stringify(App.state.template, null, 2);
+        const blob = new Blob([jsonStr], {type: "application/json"});
+        const url = URL.createObjectURL(blob);
         
-        const modal = new bootstrap.Modal(document.getElementById('shareModal'));
-        document.getElementById('shareLinkInput').value = fullUrl;
-        document.getElementById('btnOpenLink').href = fullUrl;
+        // 3. Update Modal UI for "Static Publish"
+        const modalEl = document.getElementById('shareModal');
+        const modal = new bootstrap.Modal(modalEl);
         
-        document.getElementById('btnCopyLink').onclick = () => {
-            navigator.clipboard.writeText(fullUrl);
-            alert("Copied!");
-        };
+        // Inject Custom Content into Modal Body (Cleanest way without changing HTML structure drastically)
+        const body = modalEl.querySelector('.modal-body');
+        const shareUrl = `${window.location.href.replace('admin.html', 'index.html').split('?')[0]}?template=${slug}`;
+        
+        body.innerHTML = `
+            <div class="alert alert-info small">
+                <strong><i class="fa-solid fa-cloud-arrow-up"></i> Static Publish Workflow</strong><br>
+                Since we are using static hosting, you need to save the template file to your repository.
+            </div>
+            
+            <div class="d-grid gap-2 mb-3">
+                <a href="${url}" download="${slug}.json" class="btn btn-success">
+                    <i class="fa-solid fa-download"></i> Download <b>${slug}.json</b>
+                </a>
+            </div>
+            
+            <p class="small text-muted mb-1">Step 2: Upload this file to <code>/templates/</code> folder in your repo.</p>
+            <p class="small text-muted mb-3">Step 3: Use this link to share:</p>
+            
+            <div class="input-group mb-3">
+                <input type="text" class="form-control font-monospace small" value="${shareUrl}" id="shareLinkInput" readonly>
+                <button class="btn btn-outline-primary" id="btnCopyLink"><i class="fa-regular fa-copy"></i></button>
+                <a href="${shareUrl}" target="_blank" class="btn btn-outline-secondary"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+            </div>
+        `;
+        
+        // Bind Copy
+        setTimeout(() => {
+            document.getElementById('btnCopyLink').onclick = () => {
+                const input = document.getElementById('shareLinkInput');
+                input.select();
+                navigator.clipboard.writeText(input.value);
+                // Visual feedback could be added here
+            };
+        }, 100);
         
         modal.show();
     }

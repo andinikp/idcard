@@ -113,52 +113,63 @@
 
     <div class="main-content">
         <!-- LEFT PANEL: SETTINGS -->
-        <div class="sidebar p-3" style="width: 300px;">
-            <h6 class="section-title mt-0">Document</h6>
-            <div class="form-group mb-2">
-                <input type="text" class="form-control form-control-sm" id="inputTemplateName" placeholder="Template Name">
-            </div>
-            <div class="row g-2 mb-3">
-                <div class="col-6">
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text">W</span>
-                        <input type="number" class="form-control" id="inputWidth" value="54">
+        <!-- LEFT PANEL: SETTINGS -->
+        <div class="sidebar d-flex flex-column" style="width: 300px; overflow: hidden;">
+            <!-- Top Section: Doc & Background (Scrollable) -->
+            <div class="p-3 border-bottom" style="overflow-y: auto; flex-shrink: 0; max-height: 60vh;">
+                <h6 class="section-title mt-0">Document</h6>
+                <div class="form-group mb-2">
+                    <input type="text" class="form-control form-control-sm" id="inputTemplateName" placeholder="Template Name">
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text">W</span>
+                            <input type="number" class="form-control" id="inputWidth" value="54">
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text">H</span>
+                            <input type="number" class="form-control" id="inputHeight" value="86">
+                        </div>
                     </div>
                 </div>
-                <div class="col-6">
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text">H</span>
-                        <input type="number" class="form-control" id="inputHeight" value="86">
+
+                <h6 class="section-title">Background</h6>
+                <div class="bg-settings-panel text-center">
+                    <div id="bgPreviewContainer" class="mb-2" style="display:none;">
+                        <img id="bgPreviewImage" src="" style="max-width: 100%; max-height: 120px; object-fit: contain; border: 1px solid #ddd; background: #eee;">
+                        <div class="mt-1 small text-muted" id="bgSizeInfo"></div>
+                    </div>
+                    
+                    <input type="file" id="fileBgUpload" accept="image/*" style="display:none;">
+                    
+                    <div class="d-grid gap-1">
+                        <button class="btn btn-white border btn-sm" id="btnUploadBg">
+                            <i class="fa-solid fa-upload me-1"></i> Upload Image
+                        </button>
+                        <div id="bgOptions" style="display:none;">
+                            <select class="form-select form-select-sm my-1" id="bgFitSelect">
+                                <option value="stretch">Fill (Stretch)</option>
+                                <option value="cover">Cover (Crop)</option>
+                                <option value="contain">Contain (Fit)</option>
+                            </select>
+                            <button class="btn btn-outline-danger btn-sm w-100" id="btnRemoveBg">Remove</button>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <h6 class="section-title">Background</h6>
-            <div class="bg-settings-panel text-center">
-                <div id="bgPreviewContainer" class="mb-2" style="display:none;">
-                    <img id="bgPreviewImage" src="" style="max-width: 100%; max-height: 80px; object-fit: contain; border: 1px solid #ddd;">
-                    <div class="mt-1 small text-muted" id="bgSizeInfo"></div>
+            <!-- Bottom Section: Fields (Fills remaining space) -->
+            <div class="d-flex flex-column flex-grow-1" style="min-height: 0; background: #fff;">
+                <div class="px-3 pt-3 pb-2 bg-light border-bottom">
+                    <h6 class="section-title m-0">Fields (Data)</h6>
                 </div>
-                
-                <input type="file" id="fileBgUpload" accept="image/*" style="display:none;">
-                
-                <div class="d-grid gap-1">
-                    <button class="btn btn-white border btn-sm" id="btnUploadBg">
-                        <i class="fa-solid fa-upload me-1"></i> Upload Image
-                    </button>
-                    <div id="bgOptions" style="display:none;">
-                        <select class="form-select form-select-sm my-1" id="bgFitSelect">
-                            <option value="stretch">Fill (Stretch)</option>
-                            <option value="cover">Cover (Crop)</option>
-                            <option value="contain">Contain (Fit)</option>
-                        </select>
-                        <button class="btn btn-outline-danger btn-sm w-100" id="btnRemoveBg">Remove</button>
-                    </div>
+                <div id="fieldsList" class="list-group list-group-flush small" style="overflow-y: auto; flex: 1;">
+                    <!-- Filled by JS -->
                 </div>
             </div>
-
-            <h6 class="section-title">Fields (Data)</h6>
-            <div id="fieldsList" class="list-group list-group-flush small" style="max-height: 300px; overflow-y:auto;"></div>
         </div>
 
         <!-- CENTER PANEL: CANVAS -->

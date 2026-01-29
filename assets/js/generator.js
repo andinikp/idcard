@@ -21,7 +21,7 @@ const Generator = {
             console.log(`Fetching template: ${templateSlug}...`);
             try {
                 // Fetch from our new API which redirects to Blob
-                const res = await fetch(`api/template?slug=${templateSlug}`);
+                const res = await fetch(`api/template?slug=${templateSlug}&t=${Date.now()}`);
                 if (!res.ok) throw new Error("Template not found or expired.");
                 
                 const json = await res.json();

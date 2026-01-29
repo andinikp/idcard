@@ -28,7 +28,7 @@ export default async function handler(request, response) {
 
         // Redirect to the blob URL (faster than proxying)
         // Client will fetch this JSON
-        return response.redirect(302, blobs[0].url);
+        return response.redirect(302, `${blobs[0].url}?t=${Date.now()}`);
 
     } catch (error) {
         console.error(error);

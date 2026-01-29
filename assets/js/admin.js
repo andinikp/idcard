@@ -99,6 +99,37 @@ const App = {
     undo: () => App.restoreState(App.state.historyIndex - 1),
     redo: () => App.restoreState(App.state.historyIndex + 1),
 
+    newTemplate: async () => {
+        if(!confirm("Create new template? Unsaved changes will be lost.")) return;
+         
+        // Reset State
+        try {
+            const def = await fetch('templates/default.json').then(r => r.json());
+            App.state.template = def;
+        } catch(e) {
+            App.state.template = {
+                meta: { widthMm: 54, heightMm: 86 },
+                background: { type: 'color', value: '#ffffff', fit: 'stretch' },
+                fields: [],
+                layers: []
+            };
+        }
+        
+        // IMPORTANT: Clear the slug so next publish creates a NEW link
+        if(App.state.template.meta) App.state.template.meta.slug = null;
+
+        App.state.history = [];
+        App.state.historyIndex = -1;
+        App.selectedLayerId = null;
+        
+        // Reset UI
+        document.getElementById('inputTemplateName').value = '';
+        App.bgSettings.render();
+        App.renderUI();
+        App.renderCanvas();
+        App.saveState(true);
+    },
+
     updateUndoRedoButtons: () => {
         document.getElementById('toolUndo').disabled = App.state.historyIndex <= 0;
         document.getElementById('toolRedo').disabled = App.state.historyIndex >= App.state.history.length - 1;
@@ -461,6 +492,9 @@ const App = {
     // --- BINDINGS ---
 
     bindToolbar: () => {
+        const btnNew = document.getElementById('btnNew');
+        if(btnNew) btnNew.onclick = App.newTemplate;
+
         document.querySelectorAll('[data-add]').forEach(b => {
             b.onclick = () => App.addLayer(b.dataset.add);
         });
@@ -692,7 +726,15 @@ const App = {
         // if (!token) return alert("Admin Token required.");
 
         const name = document.getElementById('inputTemplateName').value || 'untitled';
-        const slug = name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') || 'template-' + Date.now();
+        
+        // Use existing slug if it exists (update), otherwise generate new one (create)
+        let slug = App.state.template.meta.slug;
+        if (!slug) {
+             const cleanName = name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') || 'template';
+             const suffix = Math.floor(Date.now() / 1000).toString(36);
+             slug = `${cleanName}-${suffix}`;
+             App.state.template.meta.slug = slug; // Save it to state
+        }
         
         const btn = document.getElementById('btnPublish'); // Assume we add this button
         if(btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';

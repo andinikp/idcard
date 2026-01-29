@@ -181,18 +181,28 @@ const RenderEngine = {
                 ctx.fill();
             }
         } 
-        else if (layer.type === 'text') {
+        if (layer.type === 'text') {
             let text = (layer.staticText || 'Sample Text');
-            let val = null;
-            if (layer.bindKey && formData && formData[layer.bindKey]) {
-                val = formData[layer.bindKey];
+            
+            // Logic:
+            // 1. If bound to a key...
+            if (layer.bindKey) {
+                // 2. Check if we have data for it
+                let val = formData ? formData[layer.bindKey] : undefined;
+                
+                // Unwrap object value if needed
                 if (val && typeof val === 'object' && val.value) {
                     val = val.value;
                 }
-                text = (layer.textPrefix || '') + String(val);
-            } else if (layer.bindKey && formData && formData[layer.bindKey] === undefined) {
-                // If bindKey exists but no data, show bindKey as placeholder
-                text = layer.bindKey;
+
+                // 3. If data exists and is not empty string, show it
+                if (val !== undefined && val !== null && String(val).trim() !== '') {
+                    text = (layer.textPrefix || '') + String(val);
+                } else {
+                    // 4. If data is empty/missing, show the Field Name (bindKey) as placeholder
+                    // This fixes the "Sample Text" issue on empty input
+                    text = layer.bindKey;
+                }
             }
             
             ctx.font = `${layer.fontWeight || 'normal'} ${layer.fontSize || 16}px ${layer.fontFamily || 'Arial'}`;
